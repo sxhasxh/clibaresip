@@ -1,10 +1,3 @@
-/*************************************************************************
-  > File Name: a_client.c
-  > Author: 
-  > Mail: 
-  > Created Time: 2017年12月25日 星期一 17时24分23秒
- ************************************************************************/
-
 #include<stdio.h>
 #include<stdlib.h> 
 #include<string.h> 
@@ -12,46 +5,13 @@
 #include<sys/types.h> 
 #include<sys/socket.h> 
 #include<netinet/in.h> 
-#define MAXLINE 4096 
-#define BARESIP_PORT 5555 
-#define BUF_SIZE 4096
+#include "mysocket.h"
 
-int voip_client_send(const char *str);
-void voip_client_recv();
-int voip_client_init();
 
+char recvline[BUF_SIZE],sendline[BUF_SIZE];
 int sockfd;
-char recvline[BUF_SIZE];
 
-int main(int argc, char** argv) 
-{ 
 
-    pthread_t id_1;
-    int ret;
-
-    char *senddata = NULL;
-    senddata = (char *)malloc(BUF_SIZE);
-    strcpy(senddata,"/about");
-    senddata[strlen(senddata)] = 0x0a;
-    senddata[strlen(senddata)+1] = 0x0;
-
-    voip_client_init();
-
-    ret=pthread_create(&id_1,NULL,(void  *) voip_client_recv,NULL);  
-    if(ret!=0)  
-    {  
-        printf("Create pthread error!\n");  
-        return -1;  
-    }  
-    while(1)
-    {   
-        voip_client_send(senddata);
-        sleep(3);
-    }  
-    pthread_join(id_1,NULL); 
-    close(sockfd); 
-    return 0;
-}
 int voip_client_init()
 {
     struct sockaddr_in servaddr;
@@ -71,9 +31,11 @@ int voip_client_init()
         printf("connect error: %s(errno: %d)\n",strerror(errno),errno); 
         exit(0);  
     } 
-
+    return sockfd;
 
 }
+
+
 int voip_client_send(const char *str)
 {
     if( send(sockfd, str, strlen(str), 0) < 0 ) 
@@ -82,7 +44,14 @@ int voip_client_send(const char *str)
     }
 }
 
-
+int voip_client_send_from_stdin()
+{
+    fgets(sendline, BUF_SIZE, stdin); 
+    if( send(sockfd, sendline, strlen(sendline), 0) < 0 ) 
+    {
+        printf("send msg error: %s(errno: %d)\n", strerror(errno), errno); 
+    }
+}
 
 
 void voip_client_recv()
@@ -97,11 +66,8 @@ void voip_client_recv()
         else if (num>0)  
         {  
             printf("%s", recvline);  
+            data_analyse(recvline);
             memset(recvline, 0, BUF_SIZE);  
         }  
     }
 }
-
-
-
-

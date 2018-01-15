@@ -16,18 +16,24 @@
 #define BARESIP_PORT 5555 
 #define BUF_SIZE 4096
 
-int voip_client_send();
+int voip_client_send(const char *str);
 void voip_client_recv();
 int voip_client_init();
 
 int sockfd;
-char recvline[BUF_SIZE], sendline[BUF_SIZE];
+char recvline[BUF_SIZE];
 
 int main(int argc, char** argv) 
 { 
 
     pthread_t id_1;
     int ret;
+
+    char *senddata = NULL;
+    senddata = (char *)malloc(BUF_SIZE);
+    strcpy(senddata,"/about");
+    senddata[strlen(senddata)] = 0x0a;
+    senddata[strlen(senddata)+1] = 0x0;
 
     voip_client_init();
 
@@ -37,8 +43,10 @@ int main(int argc, char** argv)
         printf("Create pthread error!\n");  
         return -1;  
     }  
-    while(1){   
-        voip_client_send();
+    while(1)
+    {   
+        voip_client_send(senddata);
+        sleep(3);
     }  
     pthread_join(id_1,NULL); 
     close(sockfd); 
@@ -66,14 +74,17 @@ int voip_client_init()
 
 
 }
-int voip_client_send()
+int voip_client_send(const char *str)
 {
-    fgets(sendline, BUF_SIZE, stdin); 
-    if( send(sockfd, sendline, strlen(sendline), 0) < 0 ) 
+    if( send(sockfd, str, strlen(str), 0) < 0 ) 
     {
         printf("send msg error: %s(errno: %d)\n", strerror(errno), errno); 
     }
 }
+
+
+
+
 void voip_client_recv()
 {  
     int  num; 

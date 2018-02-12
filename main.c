@@ -11,7 +11,7 @@
 
 
 
-
+int end_flag ;
 
 
 int main(int argc, char** argv) 
@@ -29,7 +29,9 @@ int main(int argc, char** argv)
 
     sfd = voip_client_init();
 
-    ret=pthread_create(&id_1,NULL,(void  *) voip_client_recv,NULL);  
+    end_flag = 1;
+
+    ret=pthread_create(&id_1,NULL,(void  *) voip_client_read,NULL);  
     if(ret!=0)  
     {  
         printf("Create pthread error!\n");  
@@ -38,7 +40,9 @@ int main(int argc, char** argv)
     while(1)
     {   
         voip_client_send_from_stdin();
-    }  
+    } 
+
+    end_flag = 0; 
     pthread_join(id_1,NULL); 
     close(sfd); 
     return 0;
